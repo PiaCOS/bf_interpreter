@@ -1,5 +1,8 @@
 use core::fmt;
-use std::{fs, io::{self, Write}};
+use std::{fs, io::{self, Read, Write}};
+use clap::{self, Parser};
+
+mod cli;
 
 #[derive(Clone, Debug)]
 pub enum Ops {
@@ -98,10 +101,8 @@ pub fn run(code: &str) -> Result<(), BrainFuckError> {
                     s_ptr = jump_back;
                 }
             },
-            Ops::Input => {todo!()},
-            Ops::Output => {
-                io::stdout().write_all(&memory[m_ptr..m_ptr+1])?
-            },
+            Ops::Input => io::stdin().read_exact(&mut memory[m_ptr..m_ptr+1])?,
+            Ops::Output => io::stdout().write_all(&memory[m_ptr..m_ptr+1])?,
         }
         s_ptr += 1;
     }
@@ -141,7 +142,8 @@ impl fmt::Display for BrainFuckError {
 
 
 fn main() -> Result<(), BrainFuckError> {
-    let code = fs::read_to_string("./mandelbrot.bf")?;
+    let args = cli::Args::parse();
+    let code = fs::read_to_string(args.file)?;
     run(&code)?;
     Ok(())
 }
